@@ -81,10 +81,6 @@ def mcts(pos, rule, n, sim):
     # take the children with the best result
     max = -1
     ret = None
-    moves = rule.available_actions()
-    # print("stuck:", stuck)
-    # assume at least 1 element in the successor
-    # print(tree[0][SUC])
     for child in tree[0][SUC]:
         res = tree[child][SCO] / tree[child][PLA]
         if (res >= max):

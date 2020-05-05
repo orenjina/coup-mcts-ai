@@ -11,6 +11,19 @@ def random_strategy(rule):
         return random.choice(rule.available_actions())
     return fxn
 
+# random with objection inference
+def random_inf_strategy(rule):
+    def fxn(pos):
+        rule.set_state(pos)
+        acts = rule.available_actions()
+        density = [1] * len(acts)
+        if "object" in acts:
+            density[acts.index("object")] = fxn.obj_rec[0] / fxn.obj_rec[1] * 2
+        act = random.choices(acts, weights=density)[0]
+        return act
+    fxn.obj_rec = (1, 2)
+    return fxn
+
 def random_honest_strategy(rule):
     def fxn(pos):
         rule.set_state(pos)
@@ -34,6 +47,24 @@ def random_manual_strategy(rule):
             acts.remove('foreign_aid')
         act = random.choice(acts)
         return act
+    return fxn
+
+
+def random_manual_inf_strategy(rule):
+    def fxn(pos):
+        rule.set_state(pos)
+        acts = rule.honest_actions()
+        if 'coup' in acts:
+            return 'coup'
+        elif 'tax' in acts:
+            acts.remove('income')
+            acts.remove('foreign_aid')
+        density = [1] * len(acts)
+        if "object" in acts:
+            density[acts.index("object")] = fxn.obj_rec[0] / fxn.obj_rec[1] * 2
+        act = random.choices(acts, weights=density)[0]
+        return act
+    fxn.obj_rec = (1, 2)
     return fxn
 
 # number of games, first strat, second strat, and whether they use information
@@ -104,8 +135,8 @@ def test_alt_strategies(games, strat1, strat2, info1, info2, verbose=False):
     for g in range(games):
         coup = Coup(2, 2, 2, 3)
         # print("game: ", g)
-        if g % 100 == 99:
-            print("game: ", g)
+        # if g % 100 == 99:
+        #     print("game: ", g)
         moves = 0
         if verbose:
             coup.log(verbose=False)
@@ -157,6 +188,8 @@ if __name__ == "__main__":
     random_honest_strat = random_honest_strategy(coup)
     random_manual_strat = random_manual_strategy(coup)
     random_noobject_strat = random_noobject_strategy(coup)
+    random_inf_strat = random_inf_strategy(coup)
+    random_manual_inf_strat = random_manual_inf_strategy(coup)
 
     cheat_mcts_trials = 1000
     cheat_mcts_strat = cheat_mcts_strategy(cheat_mcts_trials, coup, random_manual_strat)
@@ -184,12 +217,13 @@ if __name__ == "__main__":
 
 
     # basic strategy comparisons
-    # test_strategies(1000, random_strat, random_manual_strat, False, False) # 0.204
-    # test_strategies(1000, random_manual_strat, random_strat, False, False) # 0.852
-    # test_strategies(1000, random_manual_strat, random_noobject_strat, False, False) # 0.458
-    # test_strategies(1000, random_noobject_strat, random_manual_strat, False, False) # 0.574
-    # test_strategies(1000, random_strat, random_noobject_strat, False, False) # 0.722
-    # test_strategies(1000, random_noobject_strat, random_strat, False, False) # 0.345
+    # test_alt_strategies(1000, random_manual_strat, random_honest_strat, False, False) #0.629
+    # test_alt_strategies(1000, random_manual_strat, random_strat, False, False) #0.884
+    # test_alt_strategies(1000, random_manual_strat, random_noobject_strat, False, False) #0.852
+    # test_alt_strategies(1000, random_manual_strat, random_inf_strat, False, False) #0.81
+    # test_alt_strategies(1000, random_noobject_strat, random_inf_strat, False, False) #0.415
+    # test_alt_strategies(1000, random_strat, random_inf_strat, False, False) #0.47
+    # test_alt_strategies(1000, random_manual_inf_strat, random_manual_strat, False, False) #0.512
 
     # 200 det tests
     # test_strategies(100, random_strat, det_mcts_strat2, False, True)
@@ -200,9 +234,9 @@ if __name__ == "__main__":
     # test_strategies(100, det_mcts_strat2, random_noobject_strat, True, False)
 
     # 200 det tests
-    test_alt_strategies(1000, random_strat, det_obj_mcts_strat2, False, True)
-    test_alt_strategies(1000, random_manual_strat, det_obj_mcts_strat2, False, True)
-    test_alt_strategies(1000, random_noobject_strat, det_obj_mcts_strat2, False, True)
+    # test_alt_strategies(1000, random_strat, det_obj_mcts_strat2, False, True)
+    # test_alt_strategies(1000, random_manual_strat, det_obj_mcts_strat2, False, True)
+    # test_alt_strategies(1000, random_noobject_strat, det_obj_mcts_strat2, False, True)
 
     # test_alt_strategies(100, det_obj_mcts_strat2, random_manual_strat, True, False)
 
@@ -215,39 +249,30 @@ if __name__ == "__main__":
     # test_strategies(100, det_mcts_strat, random_noobject_strat, True, False)
 
     # 1000 det tests
-    test_alt_strategies(1000, random_strat, det_obj_mcts_strat, False, True)
-    test_alt_strategies(1000, random_manual_strat, det_obj_mcts_strat, False, True)
-    test_alt_strategies(1000, random_noobject_strat, det_obj_mcts_strat, False, True)
+    # test_alt_strategies(1000, random_strat, det_obj_mcts_strat, False, True)
+    # test_alt_strategies(1000, random_manual_strat, det_obj_mcts_strat, False, True)
+    # test_alt_strategies(1000, random_noobject_strat, det_obj_mcts_strat, False, True)
 
-    # 10000 det tests
+    # 5000 det tests
     # test_strategies(400, random_strat, det_mcts_strat_big, False, True)
     # test_strategies(400, random_manual_strat, det_mcts_strat_big, False, True)
     # test_strategies(400, det_mcts_strat_big, random_strat, True, False)
     # test_strategies(40, det_mcts_strat_big, random_manual_strat, True, False, True)
 
     # mixed tests
-    # test_alt_strategies(100, det_obj_mcts_strat2, det_mcts_strat2, True, True)
-    # test_alt_strategies(100, det_obj_mcts_strat, det_mcts_strat, True, True)
-    # test_alt_strategies(100, det_obj_mcts_strat, det_obj_mcts_strat2, True, True)
-    # test_alt_strategies(100, det_obj_mcts_strat_big, det_obj_mcts_strat2, True, True)
+    # test_alt_strategies(1000, det_obj_mcts_strat2, det_mcts_strat2, True, True)
+    # test_alt_strategies(800, det_obj_mcts_strat, det_mcts_strat, True, True)
+    # test_alt_strategies(1000, det_obj_mcts_strat, det_obj_mcts_strat2, True, True)
+    # test_alt_strategies(400, det_obj_mcts_strat_big, det_obj_mcts_strat2, True, True)
+    # test_alt_strategies(400, det_obj_mcts_strat_big, det_obj_mcts_strat, True, True)
 
     # test_strategies(100, det_mcts_strat2, det_mcts_strat, True, True)
     # test_strategies(100, det_mcts_strat, det_mcts_strat2, True, True)
     # test_strategies(1000, det_mcts_strat, det_mcts_strat, True, True)
     # test_strategies(1000, det_mcts_strat2, det_mcts_strat2, True, True)
 
-    # test_strategies(400, det_mcts_strat_big, random_manual_strat, True, False)
-    # test_strategies(400, det_mcts_strat_big, random_manual_strat, True, False)
-    # test_strategies(400, det_mcts_strat_big, random_manual_strat, True, False)
-    #
-    # test_strategies(400, random_manual_strat, det_mcts_strat_big, False, True)
-    # test_strategies(400, random_manual_strat, det_mcts_strat_big, False, True)
-    # test_strategies(400, random_manual_strat, det_mcts_strat_big, False, True)
-
-
+    # test_alt_strategies(400, det_obj_mcts_strat, cheat_mcts_strat2, True, False) #0.0725
 
     # test_strategies(400, random_manual_strat, cheat_mcts_strat2, False, False)
-    # test_strategies(400, det_mcts_strat, cheat_mcts_strat2, True, False)
-    # test_strategies(400, cheat_mcts_strat, cheat_mcts_strat2, False, False)
 
     # test_strategies(200, det_mcts_strat_big, det_mcts_strat, True, False)

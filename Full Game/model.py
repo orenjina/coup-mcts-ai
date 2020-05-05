@@ -158,12 +158,8 @@ class Coup(object):
                     return ['pass']
                 else:
                     return ['object']
-            elif self.cur_action == 'coup':
-                # process this maybe
-                # shouldn't get here in 1 card version
-                return None
             else:
-                # shouldn't be here normally
+                # shouldn't be here
                 return None
 
     def estimate_actions(self):

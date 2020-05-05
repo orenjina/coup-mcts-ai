@@ -451,7 +451,8 @@ class Coup(object):
             "revealed cards", self.players[1 - player].revealedlist())
         print("Current action is ", self.cur_action)
         print("Current state is ", self.cur_state)
-        print("Available actions", self.available_actions())
+        if self.cur_player == player:
+            print("Available actions", self.available_actions())
         print("==============================")
 
     def log(self, verbose=False):
